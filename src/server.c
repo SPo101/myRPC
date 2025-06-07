@@ -6,16 +6,15 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
 
-#include "../include/parser.h"
+#include "parser.h"
 
-#define BACKLOG 5
-#define BUFFSIZE 1024
 
 int main(){
 
 	config_server *server_settings = malloc(sizeof(config_server));
-	int status = parse_conf_file("../config/server_config", server_settings);
+	int status = parse_conf_file("../config/server.conf", server_settings);
 	if(status == -1){
 		printf("Error reading a config file\n");
 		exit(EXIT_FAILURE);
@@ -37,6 +36,7 @@ int main(){
 	hints.ai_flags = AI_PASSIVE;
 
 	status = getaddrinfo(NULL, server_settings->port, &hints, &res);
+	free(server_settings);
 
 	for(p = res; p != NULL; p = p->ai_next){
 		struct sockaddr_in *ipv4 = (struct sockaddr_in *) p->ai_addr;
@@ -72,14 +72,22 @@ int main(){
 		pid = fork();
 		if(!pid){
 			close(sd);
+			user_data *u_data = malloc(sizeof(user_data));
 			while(1){
 				memset(buffer, 0, BUFFSIZE);
 				bytes_received = recv(new_sd, buffer, BUFFSIZE, 0);	
-				if(bytes_received)
-					printf("\t[client %6d] - %s", getpid(), buffer);
+
 				if(!strcmp(buffer, "Quit\n"))
 					break;
+
+				parse_user_input(buffer, u_data);						
+
+				if((bytes_received) && (check_user(u_data->username) == SUCCESS))
+					printf("\t[client %6d] - %s %s", getpid(), u_data->username, u_data->command);
 			}
+			free(u_data->username);
+			free(u_data->command);
+			free(u_data);
 			close(new_sd);
 			exit(EXIT_SUCCESS);
 		}

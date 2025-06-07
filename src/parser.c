@@ -5,7 +5,7 @@
 #include <fcntl.h>
 #include <stdbool.h>
 
-#include "../include/parser.h"
+#include "parser.h"
 
 int find_word_place(const char *text, const char *right_word, const char *escape_word){
 	const char *port = right_word;
@@ -64,3 +64,35 @@ int parse_conf_file(const char *path, config_server *settings){
 	free(text);
 	return SUCCESS;
 }
+
+
+
+void parse_user_input(const char *buffer, user_data *u_data){
+
+				int mid;
+				for(int i=0; i<BUFFSIZE; i++)
+					if(buffer[i] == '|'){
+						mid = i;
+						break;
+					}
+				u_data->username = malloc(mid);	
+				u_data->command  = malloc(BUFFSIZE-mid);
+				strncpy(u_data->username, buffer, mid);
+				strncpy(u_data->command, buffer+mid+1, BUFFSIZE-mid);
+
+}
+
+int check_user(const char *user){
+	int fd = open("../config/users.conf", O_RDONLY);
+	int offset = lseek(fd, 0, SEEK_END);
+	lseek(fd, 0, SEEK_SET);
+
+	char *text = malloc(offset);
+	read(fd, text, offset);
+	
+	char *result = strstr(text, user);
+	if(result != NULL)
+		return SUCCESS;
+	return FAILURE;
+}
+

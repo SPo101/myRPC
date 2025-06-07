@@ -3,16 +3,20 @@ Flags := -I ./include
 IDir := ./include/
 SDir := ./src/
 BDir := ./.build/
-Files := client username
+Client := client username
+Server := server parser
 
-SFiles = $(addprefix $(SDir), $(Files:%=%.c))
-
-
-all: create_dir $(BDir)Files
-
+SClient = $(addprefix $(SDir), $(Client:%=%.c))
+SServer = $(addprefix $(SDir), $(Server:%=%.c))
 
 
-$(BDir)Files: $(SFiles)
+all: create_dir $(BDir)Client $(BDir)Server
+
+
+$(BDir)Client: $(SClient)
+	@$(CC) $(Flags) -o $@ $^
+
+$(BDir)Server: $(SServer)
 	@$(CC) $(Flags) -o $@ $^
 
 
