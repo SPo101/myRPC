@@ -11,9 +11,3 @@ int get_log_name(char **log_name){
 	return FAILURE;
 }
 
-int main(){
-	char *name;
-	int st = get_log_name(&name);
-	printf("%d %s",st,name);
-}
-

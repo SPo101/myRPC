@@ -11,6 +11,7 @@
 #include <arpa/inet.h>
 
 
+#include "username.h"
 
 #define CNT_OPT 6
 #define SUCCESS 0
@@ -131,8 +132,34 @@ int client_establish_tcp_connection(const char *host, const char *port, int *soc
 	
 
 int client_close_tcp_connection(int sd, struct addrinfo *res){
-	//freeaddrinfo(res);
+	freeaddrinfo(res);
 	close(sd);
+	return SUCCESS;
+}
+
+int client_send_tcp_data(int sd, const char *command){
+	char buffer[BUFFSIZE];
+	
+	char q;
+	char *log_name;
+	char *data = malloc(256);
+	get_log_name(&log_name);
+
+	strcat(data, log_name);
+	strcat(data, "|");
+	strcat(data, command);
+
+	printf("%s\n", data);
+	while(1){
+		q = getchar();
+		if( q == 'q'){
+			send(sd, "Quit\n", BUFFSIZE, 0);
+			break;
+		}
+
+		send(sd, data, BUFFSIZE, 0);
+	}
+	free(data);
 	return SUCCESS;
 }
 
@@ -155,14 +182,11 @@ int main(int argc, char *argv[]){
 
 	int socket_descriptor;
 	struct addrinfo *result;
-	client_establish_tcp_connection(client_settings->host, client_settings->port, &socket_descriptor, &result);
 
-	char buffer[BUFFSIZE];
-	while(1){
-		getchar();
-		send(socket_descriptor, "hello\n", BUFFSIZE, 0);
-	}
+	client_establish_tcp_connection(client_settings->host, client_settings->port, &socket_descriptor, &result);
+	client_send_tcp_data(socket_descriptor, client_settings->command);
 	client_close_tcp_connection(socket_descriptor, result);
+
 	free(client_settings);
 }
 
