@@ -3,14 +3,19 @@
 #include <getopt.h>
 #include <dlfcn.h>
 #include <stddef.h>
-
-
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <arpa/inet.h>
 
 
 
 #define CNT_OPT 6
 #define SUCCESS 0
 #define FAILURE -1
+#define BUFFSIZE 1024
 
 typedef struct {
 	char *command;
@@ -89,6 +94,48 @@ int read_client_args(int cnt_args, char *args[], config_client *client_settings)
 	return SUCCESS;
 }
 
+int client_establish_tcp_connection(const char *host, const char *port, int *socket_descriptor, struct addrinfo **result){
+
+	int status, sd;
+	struct addrinfo hints, *res, *p;
+	char buffer[BUFFSIZE];
+	
+	memset(&hints, 0, sizeof hints);
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+
+	status = getaddrinfo(host, port, &hints, &res);
+	
+	for(p = res; p != NULL; p = p->ai_next){
+		if((sd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1){
+			perror("client: socket");
+			continue;
+		}
+
+		if(connect(sd, res->ai_addr, res->ai_addrlen) == -1){
+			close(sd);
+			perror("client: connect");
+			continue;
+		}
+		break;
+	}
+	
+	if(p == NULL)
+		return FAILURE;
+
+	*result = res;
+	*socket_descriptor = sd;
+	return SUCCESS;
+
+}
+	
+
+int client_close_tcp_connection(int sd, struct addrinfo *res){
+	//freeaddrinfo(res);
+	close(sd);
+	return SUCCESS;
+}
+
 int main(int argc, char *argv[]){
 
 	if(argc < 2){
@@ -106,6 +153,16 @@ int main(int argc, char *argv[]){
 	printf("%s %s %s\n", client_settings->command, client_settings->host, client_settings->port);
 	printf("%d %d\n", client_settings->stream, client_settings->dgram);
 
+	int socket_descriptor;
+	struct addrinfo *result;
+	client_establish_tcp_connection(client_settings->host, client_settings->port, &socket_descriptor, &result);
+
+	char buffer[BUFFSIZE];
+	while(1){
+		getchar();
+		send(socket_descriptor, "hello\n", BUFFSIZE, 0);
+	}
+	client_close_tcp_connection(socket_descriptor, result);
 	free(client_settings);
 }
 
