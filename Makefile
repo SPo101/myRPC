@@ -20,8 +20,8 @@ $(BDir)Server: $(SServer)
 	@$(CC) $(Flags) -o $@ $^
 
 mysyslog_lib:
-	@$(CC) $(SDir)libmysyslog-text.c -shared -o $(SDir)libmysyslog-text.so
-	@$(CC) $(SDir)libmysyslog-json.c -shared -o $(SDir)libmysyslog-json.so
+	@$(CC) $(SDir)libmysyslog-text.c -shared -o $(BDir)libmysyslog-text.so
+	@$(CC) $(SDir)libmysyslog-json.c -shared -o $(BDir)libmysyslog-json.so
 
 create_dir:
 	@./create_dir.sh
