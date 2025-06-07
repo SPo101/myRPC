@@ -5,7 +5,7 @@
 #include <fcntl.h>
 #include <stdbool.h>
 
-#include "parser.h"
+#include "../include/parser.h"
 
 int find_word_place(const char *text, const char *right_word, const char *escape_word){
 	const char *port = right_word;
@@ -59,6 +59,7 @@ int parse_conf_file(const char *path, config_server *settings){
 		return FAILURE;
 	if(read_data(text, &settings->socket, "socket_type", "#socket_type") == FAILURE)
 		return FAILURE;
+
 
 	free(text);
 	return SUCCESS;

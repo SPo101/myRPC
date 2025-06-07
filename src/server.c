@@ -7,15 +7,24 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#define PORT "8080"
+#include "../include/parser.h"
+
 #define BACKLOG 5
 #define BUFFSIZE 1024
 
 int main(){
 
+	config_server *server_settings = malloc(sizeof(config_server));
+	int status = parse_conf_file("../config/server_config", server_settings);
+	if(status == -1){
+		printf("Error reading a config file\n");
+		exit(EXIT_FAILURE);
+	}
+
+	printf("server %s %s\n", server_settings->port, server_settings->socket);
 	
 	
-	int status, sd, new_sd, pid, bytes_received;
+	int sd, new_sd, pid, bytes_received;
 	struct addrinfo hints, *res, *p;
 	struct sockaddr_in *h, addr;
 	socklen_t addr_size;
@@ -27,7 +36,7 @@ int main(){
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	status = getaddrinfo(NULL, PORT, &hints, &res);
+	status = getaddrinfo(NULL, server_settings->port, &hints, &res);
 
 	for(p = res; p != NULL; p = p->ai_next){
 		struct sockaddr_in *ipv4 = (struct sockaddr_in *) p->ai_addr;

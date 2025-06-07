@@ -1,8 +1,8 @@
 #ifndef PARSER
-#define RARSER
+#define PARSER
 
 
-type_def struct {
+typedef struct {
 	char *port;
 	char *socket;
 }config_server;

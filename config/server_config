@@ -1,0 +1,8 @@
+#port = 8180
+
+dsdfk
+:w
+port = 8080
+#socket_type = dgram
+socket_type = stream
+
