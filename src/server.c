@@ -9,7 +9,18 @@
 #include <fcntl.h>
 
 #include "parser.h"
+#include "mysyslog.h"
 
+#define LOGFILE "file.log"
+
+int execute_command(const char *command, char *ret){
+	FILE *file;
+	file = popen(command, "r");
+	fread(ret, BUFFSIZE, 1, file);
+
+	int status = pclose(file);	
+	return SUCCESS;	
+}
 
 int main(){
 
@@ -81,9 +92,15 @@ int main(){
 					break;
 
 				parse_user_input(buffer, u_data);						
+				char *ret_status = malloc(BUFFSIZE);
+			
 
-				if((bytes_received) && (check_user(u_data->username) == SUCCESS))
-					printf("\t[client %6d] - %s %s", getpid(), u_data->username, u_data->command);
+				if((bytes_received) && (check_user(u_data->username) == SUCCESS)){
+					//printf("\t[client %6d] - %s %s", getpid(), u_data->username, u_data->command);
+					execute_command(u_data->command, ret_status);
+					mysyslog(ret_status, 2, 0, 0, LOGFILE);
+					//printf("%s\n\n\n", ret_status);
+				}
 			}
 			free(u_data->username);
 			free(u_data->command);
